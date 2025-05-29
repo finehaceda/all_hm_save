@@ -1,0 +1,16 @@
+method,cost.9.jpg,cost.9.jpg.ill,cost.9.jpg.nano,method1,seq,cost
+DNAfountain,4709.12,4695.5218752,,DNAfountain,no error,4709.12
+YYC,4715.88,4770.0183024,4800.9544752,YYC,no error,4715.88
+derrick,4641.0,4648.61124,4694.27868,derrick,no error,4641.0
+PolarCode,4962.36,4988.3424864,5049.2340704,PolarCode,no error,4962.36
+Hedges,6630.0,6640.8732,,Hedges,no error,6630.0
+,,,,DNAfountain,Illumina,4703.1723440000005
+,,,,YYC,Illumina,4770.0183024
+,,,,derrick,Illumina,4648.61124
+,,,,PolarCode,Illumina,4988.3424864
+,,,,Hedges,Illumina,6640.8732
+,,,,DNAfountain,Nanopone,
+,,,,YYC,Nanopone,4777.2218091
+,,,,derrick,Nanopone,4679.4158775
+,,,,PolarCode,Nanopone,5024.2740782
+,,,,Hedges,Nanopone,10379.491083
