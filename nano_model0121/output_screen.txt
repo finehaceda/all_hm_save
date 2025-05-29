@@ -1,0 +1,44 @@
+copy_num = 10
+ori_dna_sequences = 21769
+choose_seqsnums = 15000 ; select_nums = 1000
+1000 1000
+0
+trans_seq_hottest max_num:347
+0
+testdata done!
+-----------------------------------bsalign--------------------------------
+
+错误数量超过10的序列数量:0
+mismatch数量:14 del数量:149 insert数量:61 
+发生错误的序列数量:185 发生错误数量占所有数量： 0.185
+发生错误的碱基数量 :224
+每条序列碱基数量：260
+平均编辑距离:0.224
+when dis >= 1 平均编辑距离:1.2108108108108109
+recovery rate:0.9991384615384615
+[('bsalign10', 0.9991384615384615, 0.0008615384615384615, 0.185, 0.815, '61:149:14', '224', '185')]
+第 0 次实验开始！！
+lr = 0.00011547
+n_layers = 2
+找到模型/home2/hm/models/nano_model_old/derrick_seqcluster_10000_b64/model_10000train_encdecstdb64_copy10_epoch30_.pth
+-----------------------------------deep learning--------------------------------
+模型参数已成功加载！/home2/hm/models/nano_model_old/derrick_seqcluster_10000_b64/model_10000train_encdecstdb64_copy10_epoch30_.pth
+mismatch数量:3 del数量:98 insert数量:49 
+发生错误的序列数量:130 发生错误数量占所有数据： 0.13
+发生错误的碱基数量 :150
+每条序列碱基数量：260
+平均编辑距离:0.15
+when dis > 1 平均编辑距离:1.1538461538461537
+recovery rate:0.999423076923077
+[('dp', 0.999423076923077, 0.0005769230769230769, 0.13, 0.87, '49:98:3', '150', '130')]
+method, copy_num, ratel, rater, 总碱基数量, 真正错误碱基数量, indels， indel错误识别率,准确率, 当前分布错误识别率,占所有错误的灵敏度
+('SeqTransformer', '', 0, 0.2, 0, 0, {'insert': 0, 'delete': 0, 'replace': 0, 'equal': 0}, '', 1, '0', '0')
+('SeqTransformer', '', 0.2, 0.4, 0, 0, {'insert': 0, 'delete': 0, 'replace': 0, 'equal': 0}, '', 1, '0', '0')
+('SeqTransformer', '', 0.4, 0.5, 8, 6, {'insert': 3, 'delete': 1, 'replace': 2, 'equal': 0}, 0.375, 1, 0.25, '0')
+('SeqTransformer', '', 0.5, 0.6, 31, 14, {'insert': 13, 'delete': 1, 'replace': 0, 'equal': 0}, 0.5806451612903225, 1, 0.5483870967741935, '0')
+('SeqTransformer', '', 0.6, 0.7, 31, 11, {'insert': 8, 'delete': 3, 'replace': 0, 'equal': 0}, 0.7419354838709677, 1, 0.6451612903225806, '0')
+('SeqTransformer', '', 0.7, 0.8, 42, 10, {'insert': 6, 'delete': 4, 'replace': 0, 'equal': 0}, 0.8571428571428572, 1, 0.7619047619047619, '0')
+('SeqTransformer', '', 0.8, 0.9, 143, 18, {'insert': 10, 'delete': 7, 'replace': 1, 'equal': 0}, 0.9230769230769231, 1, 0.8741258741258742, '0')
+('SeqTransformer', '', 0.9, 1, 259696, 91, {'insert': 9, 'delete': 82, 'replace': 0, 'equal': 0}, 0.9999653440946338, 1, 0.9996495902901854, '0')
+oritest_seqs_num: 1000 copynum:10
+done
