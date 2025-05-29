@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA storage simulation platform</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'synseq' %}">Simulate DNA Storage channel</a></li>
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item mx-2"><a style="color:red" class="nav-link" href="{% url 'decode' %}">decode</a></li>
+    </ul>
+    <form action="{% url 'decode' %}" method="post"> <!-- 这里只是一个示例，实际解码后可能不需要返回编码页面 -->
+        {% csrf_token %}
+        {#        {{ form.as_p }}#}
+        {# <input hidden value="{{ consensus_file_path }}" name="consensus_file_path"/>#}
+
+        <div class="mt-2 mb-1 row">
+            <label for="file" class="col-sm-2 col-form-label">upload file：</label>
+            <div class="custom-file col-sm-8">
+                <input type="file" class="custom-file-input" id="inputFile" name="file">
+                <label class="custom-file-label" for="inputFile">choose file</label>
+            </div>
+        </div>
+
+
+        {#    cluster and reconstruct#}
+        <div >
+            <div class="row mt-4">
+                <h4>cluster and reconstruct</h4>
+            </div>
+            {#    cluster#}
+            <div class="mb-3  row mt-2">
+                <label for="inputPassword" class="col-sm-2 col-form-label">cluster method:</label>
+                <div class="col-sm-8">
+                    <select id="synthesis-method" {% if cluster %}disabled="true"{% endif %} name="cluster_method" class="form-control" >
+                        <option {% if base.cluster_method == 'index' %}selected{% endif %}  value="index">index</option>
+                        <option {% if base.cluster_method == 'allbase' %}selected{% endif %}  value="allbase">reference sequence</option>
+                    </select>
+                </div>
+            </div>
+            {#    reconstruct#}
+            <div class="mb-3  row mt-2">
+                <label for="reconstruct" class="col-sm-2 col-form-label">reconstruct</label>
+                <div class="col-sm-4">
+{#                    <select id="reconstruct" name="reconstruct" class="form-control"  {% if cluster %}disabled="true"{% endif %} onchange="toggleButtons()">#}
+                    <select id="reconstruct" name="reconstruct" class="form-control"  {% if cluster %}disabled="true"{% endif %} >
+                        <option {% if base.reconstruct == 'yes' %}selected{% endif %} value="yes">yes(use a consensus for decode)</option>
+                        <option {% if base.reconstruct == 'no' %}selected{% endif %}  value="no">no(use multiple sequences for decode)</option>
+                    </select>
+                </div>
+                <div class="col-sm-4" id="rebuild_method_isshow">
+                    <select id="rebuild_method" name="rebuild_method" {% if cluster %}disabled="true"{% endif %} class="form-control" >
+                        <option {% if base.rebuild_method == 'SeqFormer' %}selected{% endif %}  value="SeqFormer">SeqFormer(consensus+base confidence)</option>
+                        <option {% if base.rebuild_method == 'bsalign' %}selected{% endif %}  value="bsalign">bsalign(consensus+base confidence)</option>
+                        <option {% if base.rebuild_method == 'BMALA' %}selected{% endif %}  value="BMALA">BMALA(consensus)</option>
+                        <option {% if base.rebuild_method == 'DivBMA' %}selected{% endif %}  value="DivBMA">DivBMA(consensus)</option>
+                        <option {% if base.rebuild_method == 'Hybrid' %}selected{% endif %}  value="Hybrid">Hybrid(consensus)</option>
+                        <option {% if base.rebuild_method == 'Iterative' %}selected{% endif %}  value="Iterative">Iterative(consensus)</option>
+                    </select>
+                </div>
+            </div>
+
+        {#    base confidence estimation#}
+            <div class="mb-3  row mt-2" id="baseconfidence_div">
+                <label for="inputPassword" class="col-sm-2 col-form-label"><b>base confidence:</b></label>
+                <div class="form-group">
+                    <div class="form-check-inline mt-2">
+                        <input class="form-check-input" {% if decode %}disabled="true"{% endif %} type="radio" name="confidence" id="confidence_yes" value="confidence_yes"
+                               {% if base.confidence == 'confidence_yes' %}checked{% endif %}>
+                        <label class="form-check-label" for="confidence_yes">
+                            Yes,I need base confidence
+                        </label>
+                    </div>
+                    <div class="form-check-inline mt-2">
+                        <input class="form-check-input" {% if decode %}disabled="true"{% endif %}  type="radio" name="confidence" id="confidence_no" value="confidence_no"
+                               {% if base.confidence == 'confidence_no' %}checked{% endif %}>
+                        <label class="form-check-label" for="confidence_no">
+                            No,I don't need base confidence
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+{#            <div class="button-group">#}
+{#                <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary d-none" id="startAndRebuildButton" name="startAndRebuildButton">start cluster and reconstruct</button>#}
+{#                <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary d-none" id="startButton" name="startButton">start cluster</button>#}
+{#            </div>#}
+            <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary" id="startAndRebuildButton" name="startAndRebuildButton">start cluster and reconstruct</button>
+            <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary" id="startButton" name="startButton">start cluster</button>
+
+        </div>
+
+        {#    base confidence estimation old#}
+    <div>
+{#        {% if reconstruct %}#}
+{#            <div>#}
+{#                <div class="row mt-4">#}
+{#                    <h4>base confidence estimation</h4>#}
+{#                </div>#}
+{##}
+{#                <div class="form-group">#}
+{#                    <div class="form-check-inline">#}
+{#                        <input class="form-check-input" {% if decode %}disabled="true"{% endif %} type="radio" name="confidence" id="confidence_yes" value="confidence_yes"#}
+{#                               {% if base.confidence == 'confidence_yes' %}checked{% endif %}>#}
+{#                        <label class="form-check-label" for="confidence_yes">#}
+{#                            Yes,I need base confidence#}
+{#                        </label>#}
+{#                    </div>#}
+{#                    <div class="form-check-inline">#}
+{#                        <input class="form-check-input" {% if decode %}disabled="true"{% endif %}  type="radio" name="confidence" id="confidence_no" value="confidence_no"#}
+{#                               {% if base.confidence == 'confidence_no' %}checked{% endif %}>#}
+{#                        <label class="form-check-label" for="confidence_no">#}
+{#                            No,I don't need base confidence#}
+{#                        </label>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <button type="submit" id="startgetconfidence" name="startgetconfidence" class="btn btn-primary">start Get</button>#}
+{#            </div>#}
+{##}
+{#        {% endif %}#}
+</div>
+            {#    decode#}
+        {% if cluster %}
+            <div>
+                <div class="row mt-4">
+                    <h4>decode</h4>
+                </div>
+                <div class="mt-2">
+                    <div class="mt-2 mb-1 row">
+                        <label for="copy_number" class="col-sm-2 col-form-label">max copy num:</label>
+                        <div class="col-sm-8">
+                            <input type="number" {% if decoded_data %}disabled="true"{% endif %}  class="form-control" id="copy_number" name="copy_number" value="{{ base.copy_number }}">
+                        </div>
+                    </div>
+                    <div class="mt-2 mb-1 row">
+                        <label for="decaylossrate" class="col-sm-2 col-form-label">decode method :</label>
+                        <div class="col-sm-8">
+                            <select id="decision" {% if decoded_data %}disabled="true"{% endif %}  name="decision" class="form-control" >
+                                <option {% if base.decision == 'hard' %}selected{% endif %} value="hard">hard decision</option>
+                                <option {% if base.decision == 'soft' %}selected{% endif %} value="soft">soft decision</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="submit" {% if decoded_data %}disabled="true"{% endif %}  class="btn btn-primary mt-3" name="decodeBtn">start decode</button>
+                    </div>
+                </div>
+            </div>
+
+
+        {% endif %}
+        {% if decode %}
+            {#    result#}
+
+            <div class="row mt-4">
+                <h4>result</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-10">
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            {% if decoded_data %}
+                                <input hidden value="{{ decoded_data }}" name="sequencing_data"/>
+                                <div id="encode-info1">
+                                    <h5 class="card-title">decode result:</h5>
+                                    <p class="card-text">
+                                    {% if decoded_data.success %}
+                                        <div>decode cost time：{{ decoded_data.time }}</div>
+                                        <div>decode bit_rev：{{ decoded_data.bit_rev }}</div>
+                                        <div>decode seq_rev：{{ decoded_data.seq_rev }}</div>
+                                    {% else %}
+                                        <div>decode fail.</div>
+                                    {% endif %}
+                                    </p>
+                                    <a href="{% url 'download_file' mode='decode' %}" class="download-link">download</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+
+    function toggleButtons() {
+        const option = document.getElementById('reconstruct').value;
+        const startAndRebuildButton = document.getElementById('startAndRebuildButton');
+        const startButton = document.getElementById('startButton');
+
+        if (option === 'yes') {
+            startAndRebuildButton.classList.remove('d-none'); // 显示“开始聚类并重建”按钮
+            startButton.classList.add('d-none'); // 隐藏“开始聚类”按钮
+        } else {
+            startAndRebuildButton.classList.add('d-none'); // 隐藏“开始聚类并重建”按钮
+            startButton.classList.remove('d-none'); // 显示“开始聚类”按钮
+        }
+    }
+    {#window.onload = function() {#}
+    {#    toggleButtons(); // 确保页面加载时根据默认选项显示正确的按钮#}
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const radioButtons = document.querySelectorAll('input[name="confidence"]');
+        const myButton = document.getElementById('startgetconfidence');
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function () {
+                if (this.id === 'confidence_no') {
+                    myButton.classList.add('d-none'); // Hide the button
+                } else {
+                    myButton.classList.remove('d-none'); // Show the button
+                }
+            });
+        });
+
+        // Optionally, hide the button by default if Option 1 is selected initially (in case of pre-selected radio button)
+        const initiallySelected = document.querySelector('input[name="confidence"]:checked');
+        if (initiallySelected && initiallySelected.id === 'confidence_no') {
+            myButton.classList.add('d-none');
+        }
+    });
+
+    $(document).ready(function() {
+        $('#reconstruct').change(function() {
+            var reconstruct = $(this).val();
+            {#console.log(reconstruct)#}
+            if (reconstruct === 'yes') {
+                $('#rebuild_method_isshow').show();
+                $('#startAndRebuildButton').show();
+                $('#startButton').hide();
+
+                if ($('#rebuild_method').val() === 'SeqFormer'||$('#rebuild_method').val() === 'bsalign'){
+                    $('#baseconfidence_div').show();
+                }
+            } else {
+                $('#startButton').show();
+                $('#startAndRebuildButton').hide();
+
+                $('#rebuild_method_isshow').hide();
+                $('#baseconfidence_div').hide();
+
+            }
+        });
+
+        $('#rebuild_method').change(function() {
+            var method = $(this).val();
+            if (method === 'SeqFormer' || method === 'bsalign') {
+                $('#baseconfidence_div').show();
+            } else {
+                $('#baseconfidence_div').hide();
+            }
+        });
+        // Initially hide the conditional field based on the default value
+        $(function() {
+            var initialOption = $('#reconstruct').val();
+            {#console.log(initialOption)#}
+            if (initialOption === 'no') {
+                $('#rebuild_method_isshow').hide();
+                $('#baseconfidence_div').hide();
+
+                $('#startAndRebuildButton').hide();
+                $('#startButton').show();
+            }
+        });
+    });
+</script>
+</body>
+</html>

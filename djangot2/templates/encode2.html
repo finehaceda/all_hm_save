@@ -1,0 +1,222 @@
+{#{% extends 'base.html' %}#}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA存储模拟编解码平台</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a style="color:red" class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'synseq' %}">synthesis sequencing</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'decode' %}">decode</a></li>
+    </ul>
+    {#    <form action="{% url 'cluster' %}" method="post">#}
+    <form action="{% url 'encode' %}" method="post">
+        {% if form.errors %}
+            <div class="alert alert-primary" role="alert">
+                请先进行编码！
+            </div>
+        {% endif %}
+        {#    <form >#}
+        {% csrf_token %}
+        <div class="row mt-4">
+            <h4>encode</h4>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-12">
+                {#                <form method="post">#}
+                {# {% 编码的文件 %}#}
+                <div class="form-group">
+                    <label for="inputFile">upload file：</label>
+                    <div class="custom-file col-md-8">
+                        <input type="file" class="custom-file-input" id="inputFile" name="file">
+                        <label class="custom-file-label" for="inputFile">choose file</label>
+                    </div>
+                </div>
+
+                {# {% 编码方法 %}#}
+                <div class="mt-2 mb-2">
+                    <label for="inputFile">encode methods：</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" value="fountain" id="flexCheckDefault"
+                               {% if "fountain" in base.method %}checked{% endif %}>
+                        <label class="form-check-label" for="flexCheckDefault">
+                            dna fountain
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" value="YYC" id="flexCheckChecked"
+                               {% if "YYC" in base.method %}checked{% endif %}>
+                        <label class="form-check-label" for="flexCheckChecked">
+                            YYC
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" value="derrick" id="flexCheckChecked"
+                               {% if "derrick" in base.method %}checked{% endif %}>
+                        <label class="form-check-label" for="flexCheckChecked">
+                            derrick
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" value="PolarCode" id="flexCheckChecked"
+                               {% if "PolarCode" in base.method %}checked{% endif %}>
+                        <label class="form-check-label" for="flexCheckChecked">
+                            PolarCode
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" value="hedges" id="flexCheckChecked"
+                               {% if "hedges" in base.method %}checked{% endif %}>
+                        <label class="form-check-label" for="flexCheckChecked">
+                            hedges
+                        </label>
+                    </div>
+                </div>
+                {# {% 编序列长度 GC含量%}#}
+
+                <div class="form-group">common parameter：
+
+                    <div class="mt-2 mb-1 ml-2 row">
+                        <label for="seq_length" class="col-sm-2 col-form-label">max homopolymer：</label>
+                        <div class="col-sm-4">
+                            <input type="number" class="form-control" id="homopolymer" value="6" name="homopolymer">
+                        </div>
+                    </div>
+
+                    <div class="mt-2 mb-1 ml-2 row">
+                        <label for="seq_length" class="col-sm-2 col-form-label">Segment length:</label>
+                        <div class="col-sm-4">
+                            <input type="number" class="form-control" id="staticEmail" value="{{ base.sequence_length }}" name="seq_length">
+                        </div>
+                        <label for="index_length" class="col-sm-2 col-form-label">index length:</label>
+                        <div class="col-sm-4">
+                            <input type="number" class="form-control" id="index_length" value="{{ base.index_length }}" name="index_length">
+                        </div>
+                    </div>
+
+
+{##}
+                    <div class="mt-2 ml-2 row">
+                        <label for="seq_length" class="col-sm-2 col-form-label">gc content：</label>
+                        <div class="input-group col-sm-7 ">
+                            <input type="number" class="form-control" id="mingc" value="{{ base.mingc }}" name="mingc">
+                            <div class="input-group-append">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            ~
+                            <input type="number" class="form-control" id="maxgc" name="maxgc" value="{{ base.maxgc }}">
+                            <div class="input-group-append">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit"  id="encodeBtn" name="encodeBtn" class="btn btn-primary">start encode...</button>
+            </div>
+        </div>
+        <div class="row mt-4"><h4>result:</h4></div>
+        {{ form.as_p }}
+        <div class="row mt-2">
+            {# 编码结果1#}
+            <div class="col-md-6">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        编码结果
+                    </div>
+                    <div class="card-body">
+                        {% if encoded_data1 %}
+                            <div id="encode-info1">
+                                {#                            <h5 class="card-title">方法一：喷泉码</h5>#}
+                                <h5 class="card-title">方法一：{{ base.method1 }}</h5>
+                                <p class="card-text">
+                                <div>Encode method：{{ base.method1 }}</div>
+                                {#                                <div>Single DNA length：{{ encoded_data1.seqlen }}nt</div>#}
+                                <div>Index length：{{ encoded_data1.index_length }}nt</div>
+                                <div>Encoding time：{{ encoded_data1.encode_time }}s</div>
+                                <div>DNA sequence number：{{ encoded_data1.sequence_number }}</div>
+                                <div>Information density：{{ encoded_data1.info_density }} bits/nt</div>
+                                </p>
+                                <button type="button" class="btn btn-success mt-3" onclick="window.location.href='/download1/'">
+                                    点击下载
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 form-group text-right">
+            <button type="reset" id="reset_button" class="btn btn-secondary">重置</button>
+            <button type="submit" id="next" name="next" class="btn btn-success">下一步></button>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    // 更新文件选择器的标签
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $(".custom-file-label").html(fileName);
+    });
+
+    // 当重置按钮被点击时
+    $('#reset_button').on('click', function () {
+        // 清空文件选择器
+        $('#inputFile').val('');
+        $('.custom-file-label').text('选择文件'); // 更新文件选择器的标签
+
+        // 重置下拉列表
+        $('#method1').val("{{ initial_params.method1 }}"); // 假设默认值是'fountain'
+        $('#method2').val("{{ initial_params.method2 }}"); // 假设第二个下拉列表的默认值也是'fountain'
+
+        // 清空其他输入字段
+        $('#sequence_length').val({{ initial_params.sequence_length }});
+        $('#mingc').val({{ initial_params.mingc }});
+        $('#maxgc').val({{ initial_params.maxgc }});
+
+        var infoDiv = document.getElementById('encode-info1');
+        while (infoDiv.firstChild) {
+            infoDiv.removeChild(infoDiv.firstChild);
+        }
+        infoDiv = document.getElementById('encode-info2');
+        while (infoDiv.firstChild) {
+            infoDiv.removeChild(infoDiv.firstChild);
+        }
+        // 你可以在这里添加更多重置逻辑，比如清空结果显示部分等
+        // 例如：$('#result-section').html(''); // 假设你有一个id为'result-section'的元素来显示结果
+    });
+
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+
+
+
+</script>
+</body>
+</html>

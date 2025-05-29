@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Form Example</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>{{ test }}</h2>
+        <form>
+            <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputFile">File input</label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="exampleInputFile">
+                    <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="exampleSelect1">Example select</label>
+                <select class="form-control" id="exampleSelect1">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Example radios</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
+                    <label class="form-check-label" for="exampleRadios1">
+                        Option 1
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
+                    <label class="form-check-label" for="exampleRadios2">
+                        Option 2
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="exampleTextarea">Example textarea</label>
+                <textarea class="form-control" id="exampleTextarea" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JavaScript for file input label update -->
+    <script>
+        // Add the following code inside a script tag to handle file input label update
+        (function() {
+            'use strict';
+            window.addEventListener('DOMContentLoaded', function() {
+                var customFileInput = document.querySelector('.custom-file-input');
+                var customFileLabel = document.querySelector('.custom-file-label');
+
+                customFileInput.addEventListener('change', function(event) {
+                    var fileName = document.getElementById("exampleInputFile").files[0].name;
+                    var nextSibling = event.target.nextElementSibling
+                    if(fileName) {
+                        customFileLabel.innerText = fileName;
+                    } else {
+                        customFileLabel.innerText = "Choose file";
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

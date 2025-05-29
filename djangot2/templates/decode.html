@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA storage simulation platform</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'simulate' %}">Simulate DNA Storage channel</a></li>
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item mx-2"><a style="color:red" class="nav-link" href="{% url 'decode' %}">decode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'evaluate' %}">evaluate</a></li>
+    </ul>
+    <form action="{% url 'decode' %}" method="post" enctype="multipart/form-data"> <!-- 这里只是一个示例，实际解码后可能不需要返回编码页面 -->
+        {% csrf_token %}
+        {% if errors %}
+            <div class="alert alert-primary" role="alert">
+                {{ errors }}
+            </div>
+        {% endif %}
+        {#        {{ form.as_p }}#}
+        {# <input hidden value="{{ consensus_file_path }}" name="consensus_file_path"/>#}
+
+
+        {#    cluster method#}
+        <div >
+            <div class="row mt-4">
+                <h4>cluster and reconstruct</h4>
+            </div>
+            {#    cluster#}
+            <div class="mb-3  row mt-2">
+                <label for="inputPassword" class="col-sm-2 col-form-label">cluster method:</label>
+                <div class="col-sm-4">
+                    <select id="cluster_method" {% if cluster %}disabled="true"{% endif %} name="cluster_method" class="form-control" >
+                        <option {% if base.cluster_method == 'index' %}selected{% endif %}  value="index">index</option>
+                        <option {% if base.cluster_method == 'allbase' %}selected{% endif %}  value="allbase">reference sequence</option>
+                        <option {% if base.cluster_method == 'no' %}selected{% endif %}  value="no">I don't need cluster</option>
+                    </select>
+                </div>
+                <div class="col-sm-4" id="index_length_div" style="display: none;">
+                    <input type="number" class="form-control" id="index_length" name="index_length" value="{{ base.index_length }}"
+                           {% if cluster %}disabled="true"{% endif %}>
+                </div>
+            </div>
+        </div>
+
+{#        <div class="mb-3  row mt-2" id="copy_num1" style="display: none;">#}
+        <div class="mb-3  row mt-2" id="copy_num1">
+            <label for="copy_number" class="col-sm-2 col-form-label">max copy num:</label>
+            <div class="col-sm-4">
+                <input type="number" {% if cluster %}disabled="true"{% endif %}  class="form-control" id="copy_number" name="copy_number" value="{{ base.copy_number }}">
+            </div>
+        </div>
+
+
+        {#    reconstruct#}
+        <div class="mb-3  row mt-2">
+            <label for="reconstruct" class="col-sm-2 col-form-label">reconstruct :</label>
+            <div class="col-sm-4">
+                {#                    <select id="reconstruct" name="reconstruct" class="form-control"  {% if cluster %}disabled="true"{% endif %} onchange="toggleButtons()">#}
+                <select id="reconstruct" name="reconstruct" class="form-control"  {% if cluster %}disabled="true"{% endif %} >
+                    <option {% if base.reconstruct == 'yes' %}selected{% endif %} value="yes">yes(use a consensus for decode)</option>
+                    <option {% if base.reconstruct == 'no' %}selected{% endif %}  value="no">no(use multiple sequences for decode)</option>
+                </select>
+            </div>
+            <div class="col-sm-4" id="rebuild_method_isshow" style="display: none;">
+                <select id="rebuild_method" name="rebuild_method" {% if cluster %}disabled="true"{% endif %} class="form-control" >
+                    <option {% if base.rebuild_method == 'SeqFormer' %}selected{% endif %}  value="SeqFormer">SeqFormer(consensus+base confidence)</option>
+                    <option {% if base.rebuild_method == 'bsalign' %}selected{% endif %}  value="bsalign">bsalign(consensus+base confidence)</option>
+                    <option {% if base.rebuild_method == 'BMALA' %}selected{% endif %}  value="BMALA">BMALA(consensus)</option>
+                    <option {% if base.rebuild_method == 'DivBMA' %}selected{% endif %}  value="DivBMA">DivBMA(consensus)</option>
+                    <option {% if base.rebuild_method == 'Hybrid' %}selected{% endif %}  value="Hybrid">Hybrid(consensus)</option>
+                    <option {% if base.rebuild_method == 'Iterative' %}selected{% endif %}  value="Iterative">Iterative(consensus)</option>
+                </select>
+            </div>
+        </div>
+
+
+        {#    base confidence estimation#}
+        <div class="mb-3  row mt-2" id="baseconfidence_div" style="display: none;">
+            <label for="inputPassword" class="col-sm-2 col-form-label"><b>base confidence:</b></label>
+            <div class="form-group">
+                <div class="form-check-inline mt-2">
+                    <input class="form-check-input" {% if cluster %}disabled="true"{% endif %} type="radio" name="confidence" id="confidence_yes" value="yes"
+                           {% if base.confidence == 'yes' %}checked{% endif %}>
+                    <label class="form-check-label" for="confidence_yes">
+                        Yes,I need base confidence
+                    </label>
+                </div>
+                <div class="form-check-inline mt-2">
+                    <input class="form-check-input" {% if cluster %}disabled="true"{% endif %}  type="radio" name="confidence" id="confidence_no" value="no"
+                           {% if base.confidence == 'no' %}checked{% endif %}>
+                    <label class="form-check-label" for="confidence_no">
+                        No,I don't need base confidence
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <input type="text" class="form-control" id="filename" value="{{ filename }}"  hidden name="filename">
+        <input type="text" class="form-control" id="filename1" value="{{ filename1 }}"  hidden name="filename1">
+        <div class="form-group">
+            <label for="file">upload fasta/fastq file：</label>
+            <div class="custom-file col-md-7 ml-2">
+                <input type="file" class="custom-file-input" id="inputFile" name="file"{% if cluster %}disabled="true"{% endif %} >
+                <label class="custom-file-label" for="inputFile" id="fileNameLabel">choose file</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="ref_or_index">upload ref/index file：</label>
+            <div class="custom-file col-md-7">
+                <input type="file" class="custom-file-input" id="cluster_file" name="ref_or_index" {% if cluster %}disabled="true"{% endif %} >
+                <label class="custom-file-label" for="cluster_file" id="fileNameLabel1">choose file</label>
+            </div>
+        </div>
+        {#            <div class="button-group">#}
+        {#                <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary d-none" id="startAndRebuildButton" name="startAndRebuildButton">start cluster and reconstruct</button>#}
+        {#                <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary d-none" id="startButton" name="startButton">start cluster</button>#}
+        {#            </div>#}
+        {#        <button type="submit" style="display: none;" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary" id="startAndRebuildButton" name="startAndRebuildButton">start cluster and reconstruct</button>#}
+        <button type="submit" {% if cluster %}disabled="true"{% endif %} class="btn btn-primary" id="startButton" name="startButton">OK</button>
+        {#        <button type="submit" style="display: none;"  {% if cluster %}disabled="true"{% endif %} class="btn btn-primary" id="next_decode" name="next_decode">next step</button>#}
+
+        <a class="ml-2" style="display: none;" href="{% url 'download_file' mode='fordecode_outfile' %}"{% if not cluster %} hidden {% endif %} id="download_clusterfile" class="download-link">download</a>
+        {#</div>#}
+
+        {#    base confidence estimation old#}
+        <div>
+
+        </div>
+        {#    decode#}
+        {% if cluster %}
+            <div>
+                <div class="row mt-4">
+                    <h4>decode</h4>
+                </div>
+                {# {% 编码方法 %}#}
+                <div class="mt-2 mb-2">
+                    <input type="text" class="form-control" id="filename2" value="{{ filename2 }}"  hidden name="filename2">
+                    <div class="form-group">
+                        <label for="file">upload decode file：</label>
+                        <div class="custom-file col-md-7 ml-2">
+                            <input type="file" class="custom-file-input" id="file2" name="file2"{% if decode %}disabled="true"{% endif %} >
+                            <label class="custom-file-label" for="file2" id="fileNameLabel2">choose file</label>
+                        </div>
+                    </div>
+                    <input type="text" class="form-control" id="filename3" value="{{ filename3 }}"  hidden name="filename3">
+                    <div class="form-group">
+                        <label for="file">upload origin file：</label>
+                        <div class="custom-file col-md-7 ml-3">
+                            <input type="file" class="custom-file-input" id="file3" name="file3"{% if decode %}disabled="true"{% endif %} >
+                            <label class="custom-file-label" for="file3" id="fileNameLabel3">choose file</label>
+                        </div>
+                    </div>
+                    <div class="mt-2 mb-1 row">
+                        <label for="method" class="col-sm-2 col-form-label">decode methods：</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="method" name="method" {% if decoded_data %}disabled="true"{% endif %} >
+                                <option value="fountain" {% if base.method == "fountain" %}selected{% endif %}>dna fountain</option>
+                                <option value="YYC" {% if base.method == "YYC" %}selected{% endif %}>YYC</option>
+                                <option value="derrick" {% if base.method == "derrick" %}selected{% endif %}>derrick</option>
+                                <option value="PolarCode" {% if base.method == "PolarCode" %}selected{% endif %}>PolarCode</option>
+                                <option value="hedges" {% if base.method == "hedges" %}selected{% endif %}>hedges</option>
+                            </select>
+                        </div>
+                        {#                        <label for="decaylossrate" class="col-sm-2 col-form-label">decode method :</label>#}
+                        <div class="col-sm-4">
+                            <select id="decision" {% if decoded_data  %}disabled="true"{% endif %}  name="decision" class="form-control" >
+                                <option  {% if base.decision == 'hard' %}selected{% endif %} value="hard">hard decision</option>
+                                <option id="decision_soft" {% if base.reconstruct == 'no'  or base.confidence == 'no' %}hidden{% endif %}  {% if base.decision == 'soft' %}selected{% endif %} value="soft">soft decision</option>
+                            </select>
+                        </div>
+                    </div>
+                    {#                    <div class="mt-2 mb-1 row">#}
+                    {#                    </div>#}
+                </div>
+                <div class="mt-2">
+                    <div class="mt-2 mb-1 row">
+                        <label for="copy_number_decode" class="col-sm-2 col-form-label">max copy num:</label>
+                        <div class="col-sm-8">
+                            <input type="number" {% if decoded_data %}disabled="true"{% endif %}  class="form-control" id="copy_number_decode" name="copy_number_decode" value="{{ base.copy_number }}">
+                        </div>
+                    </div>
+                    {#                    <div class="mt-2 mb-1 row">#}
+                    {#                        <label for="decaylossrate" class="col-sm-2 col-form-label">decode method :</label>#}
+                    {#                        <div class="col-sm-8">#}
+                    {#                            <select id="decision" {% if decoded_data  %}disabled="true"{% endif %}  name="decision" class="form-control" >#}
+                    {#                                <option  {% if base.decision == 'hard' %}selected{% endif %} value="hard">hard decision</option>#}
+                    {#                                <option {% if base.reconstruct == 'no'  or base.confidence == 'no' %}hidden{% endif %}  {% if base.decision == 'soft' %}selected{% endif %} value="soft">soft decision</option>#}
+                    {#                            </select>#}
+                    {#                        </div>#}
+                    {#                    </div>#}
+                    <div>
+                        <button type="submit" {% if decoded_data %}disabled="true"{% endif %}  class="btn btn-primary mt-3 mb-5" name="decodeBtn">start decode</button>
+                    </div>
+                </div>
+            </div>
+
+
+        {% endif %}
+        {% if decode %}
+            {#    result#}
+
+            <div class="row mt-4">
+                <h4>result</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-10">
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            {% if decoded_data %}
+                                <input hidden value="{{ decoded_data }}" name="sequencing_data"/>
+                                <div id="encode-info1">
+                                    <h5 class="card-title">decode result:</h5>
+                                    <p class="card-text">
+                                        {% if decoded_data.code == 0%}
+                                            <div>decode cost time：{{ decoded_data.decode_time }}</div>
+                                            {#                                            <div>decode bit_rev：{{ decoded_data.bit_rev }}</div>#}
+                                            {#                                            <div>decode seq_rev：{{ decoded_data.seq_rev }}</div>#}
+                                            <div>decode bad bits：{{ decoded_data.badbits }}</div>
+                                            <div>decode bit num：{{ decoded_data.allbits }}</div>
+                                            <div>decode bit recovery：{{ decoded_data.bits_recov }}</div>
+                                        {% else %}
+                                            <div>decode fail.</div>
+                                        {% endif %}
+                                    </p>
+                                    <a href="{% url 'download_file' mode='decode' %}" {% if decoded_data.code != 0 %} hidden {% endif %}  class="download-link">download</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 mb-5 row">
+                <div class="col-sm-9"></div>
+                <button type="submit" id="next" name="restart" class="btn btn-success col-sm-1">重新开始</button>
+            </div>
+            {#            <div class="mt-4 form-group text-right">#}
+            {#            <div class="mt-4 form-group mr-4">#}
+            {#                <button type="submit" id="next" name="restart" class="btn btn-success">重新开始</button>#}
+            {#            </div>#}
+        {% endif %}
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    // 更新文件选择器的标签
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel").html(fileName);
+    });
+
+    // 更新文件选择器的标签
+    $('#cluster_file').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel1").html(fileName);
+    });
+    // 更新文件选择器的标签
+    $('#file2').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel2").html(fileName);
+    });
+    // 更新文件选择器的标签
+    $('#file3').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel3").html(fileName);
+    });
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+    $(document).ready(function() {
+        $('#reconstruct').change(function() {
+            var reconstruct = $(this).val();
+            {#console.log(reconstruct)#}
+            if (reconstruct === 'yes') {
+                $('#rebuild_method_isshow').show();
+                {#$('#startAndRebuildButton').show();#}
+                {#$('#startButton').hide();#}
+
+                if ($('#rebuild_method').val() === 'SeqFormer'||$('#rebuild_method').val() === 'bsalign'){
+                    $('#baseconfidence_div').show();
+                    $('#copy_num').show();
+                }
+            } else {
+                {#$('#startButton').show();#}
+                {#$('#startAndRebuildButton').hide();#}
+
+                $('#rebuild_method_isshow').hide();
+                $('#baseconfidence_div').hide();
+                $('#copy_num').hide();
+
+            }
+        });
+
+        $('#cluster_method').change(function() {
+            var cluster = $(this).val();
+            if(cluster ==='no'){
+                $('#inputFile').prop('disabled', true);
+                $('#cluster_file').prop('disabled', true);
+                $('#rebuild_method').prop('disabled', true);
+                $('#reconstruct').prop('disabled', true);
+                $('#confidence_yes').prop('disabled', true);
+                $('#confidence_no').prop('disabled', true);
+                $('#index_length_div').hide();
+            }else{
+                $('#inputFile').prop('disabled', false);
+                $('#cluster_file').prop('disabled', false);
+                $('#rebuild_method').prop('disabled', false);
+                $('#reconstruct').prop('disabled', false);
+                $('#confidence_yes').prop('disabled', false);
+                $('#confidence_no').prop('disabled', false);
+                if (cluster === 'index') {
+                    $('#index_length_div').show();
+                } else {
+                    $('#index_length_div').hide();
+                }
+            }
+
+        });
+
+        $('#rebuild_method').change(function() {
+            var method = $(this).val();
+            if (method === 'SeqFormer' || method === 'bsalign') {
+                $('#baseconfidence_div').show();
+                $('#copy_num').show();
+            } else {
+                $('#baseconfidence_div').hide();
+                $('#copy_num').hide();
+            }
+        });
+
+        $('#method').change(function() {
+            var method = $(this).val();
+            if (method === 'fountain' || method === 'PolarCode' ||method === 'YYC') {
+                $('#decision_soft').show();
+            } else {
+                $('#decision_soft').hide();
+            }
+        });
+
+        function init_showfilename(input=$('#filename'),label){
+            //文件名显示
+            var filename = input.val();
+            var fileNameLabel = document.getElementById(label);
+            console.log(filename)
+            // 初始化时显示默认文件名
+            if(filename){
+                fileNameLabel.textContent = filename;
+            }
+        }
+        {#//加载页面初始化#}
+        $(function() {
+            var cluster = $('#cluster_method').val();
+            if (cluster !== 'no'){
+                $('#download_clusterfile').show();
+            }
+            if (cluster === 'index') {
+                $('#index_length_div').show();
+            }
+
+            var rec = $('#reconstruct').val();
+            if (rec === 'yes'){
+                $('#rebuild_method_isshow').show();
+            }
+
+
+
+            init_showfilename($('#filename'),'fileNameLabel')
+            init_showfilename($('#filename1'),'fileNameLabel1')
+            init_showfilename($('#filename2'),'fileNameLabel2')
+            init_showfilename($('#filename3'),'fileNameLabel3')
+            /*
+            //文件名显示
+            var filename = $('#filename').val();
+            var fileNameLabel = document.getElementById('fileNameLabel');
+            console.log(filename)
+            // 初始化时显示默认文件名
+            if(filename){
+                fileNameLabel.textContent = filename;
+            }
+
+            //文件名显示 cluster_file
+            var filename1 = $('#filename1').val();
+            var fileNameLabel1 = document.getElementById('fileNameLabel1');
+            console.log(filename1)
+            // 初始化时显示默认文件名
+            if(filename1){
+                fileNameLabel1.textContent = filename1;
+            }
+
+            //文件名显示 decode file
+            var filename2 = $('#filename2').val();
+            var fileNameLabel2 = document.getElementById('fileNameLabel2');
+            console.log(filename2)
+            // 初始化时显示默认文件名
+            if(filename2){
+                fileNameLabel2.textContent = filename2;
+            }*/
+
+            var method = $('#method').val();
+            {#if (method === 'derrick' || method === 'PolarCode') {#}
+            if (method === 'fountain' || method === 'PolarCode' ||method === 'YYC') {
+                $('#decision_soft').show();
+            } else {
+                $('#decision_soft').hide();
+            }
+        });
+    });
+</script>
+</body>
+</html>

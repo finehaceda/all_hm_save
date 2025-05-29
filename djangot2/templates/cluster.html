@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA存储模拟编解码平台</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA存储模拟编解码平台</h1>
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item"><a class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'synseq' %}">synthesis sequencing</a></li>
+{#        <li class="nav-item"><a style="color:red" class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+{#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item"><a class="nav-link" href="{% url 'decode' %}">decode</a></li>
+    </ul>
+    <form action="{% url 'cluster' %}" method="post">
+        {% csrf_token %}
+        {% if errors %}
+            <div class="alert alert-primary" role="alert">
+            {{ errors }}
+            </div>
+        {% endif %}
+        {{ form.as_p }}
+        {#        {{ form.hidden_method1 }}#}
+        {#        <input hidden value="{{ cluster_outfile_path }}" name="cluster_outfile_path"/>#}
+
+        {% if consensus_file_path %}<input hidden value="{{ consensus_file_path }}" name="consensus_file_path"/>{% endif %}
+{#        <input hidden value="{{ sequencing_data1 }}" name="sequencing_data1"/>#}
+{#        <input hidden value="{{ sequencing_data2 }}" name="sequencing_data2"/>#}
+        <div class="row mt-4">
+            <h4>聚类</h4>
+        </div>
+        <div class="mb-3  row mt-2">
+            <label for="inputPassword" class="col-sm-2 col-form-label">选择聚类方法:</label>
+            <div class="col-sm-7">
+                <select id="synthesis-method" name="cluster_method" class="form-control" >
+                    <option value="index">基于index聚类</option>
+                    <option value="allbase">基于整条序列聚类</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-1" name="clusterBtn">开始聚类</button>
+        <div>
+            <div class="row mt-4">
+                <h4>结果</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            聚类结果1
+                        </div>
+                        <div class="card-body">
+                            {% if cluster %}
+                                <div id="cluster_info1">
+                                    <img src="{{ MEDIA_URL }}1.jpg" class="img-fluid" alt="">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            聚类结果2
+                        </div>
+                        <div class="card-body">
+                            {% if cluster %}
+                                <div id="cluster_info2">
+                                    <img src="{{ MEDIA_URL }}2.jpg" class="img-fluid" alt="">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if method1 == "derrick" or method1 == "yyc" or method2 == "derrick" or method2 == "yyc"%}
+            <div class="row mt-4">
+                <h4>重建</h4>
+            </div>
+            <div class="mb-3  row mt-2">
+                <label for="rebuild_method" class="col-sm-2 col-form-label">请选择序列重建方法：</label>
+                <div class="col-sm-7">
+                    <select id="rebuild_method" name="rebuild_method" class="form-control" >
+                        <option value="SeqFormer">SeqFormer</option>
+                        <option value="bsalign">bsalign</option>
+                        <option value="BMALA">BMALA</option>
+                        <option value="DivBMA">DivBMA</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Iterative">Iterative</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3  row mt-2">
+                <label for="rebuild_out" class="col-sm-2 col-form-label">请选择序列输出内容：</label>
+                <div class="col-sm-7">
+                    <select id="rebuild_out" name="rebuild_out" class="form-control" >
+                        <option value="consensus">consensus</option>
+                        <option value="consensus_with_phred">consensus+碱基质量预测概率</option>
+                    </select>
+                </div>
+            </div>
+            <button name="getconsensus" type="submit" class="btn btn-primary mt-1">开始重建</button>
+
+            <div class="row mt-4">
+                <h4>结果</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            重建结果1
+                        </div>
+                        <div class="card-body">
+                            {% if consus %}
+                                <div id="consus1">
+                                    <img src="{{ MEDIA_URL }}dis1.jpg" class="img-fluid" alt="">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            重建结果2
+                        </div>
+                        <div class="card-body">
+                            {% if consus %}
+                                <div id="consus2">
+                                    <img src="{{ MEDIA_URL }}dis2.jpg" class="img-fluid" alt="">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        {% endif %}
+
+        <div class="mt-4 form-group text-right">
+{#            <button id="before" class="btn btn-secondary">上一步</button>#}
+            <button id="reset" class="btn btn-secondary" type="reset" name="reset">重置</button>
+            <button id="next" class="btn btn-success" name="next" type="submit">下一步></button>
+        </div>
+    </form>
+    <div>
+        {#    <form action="{% url 'cluster_to_decode' %}" method="post">#}
+        {#        {% csrf_token %}#}
+        {#        <div class="row mt-4">#}
+        {#            <h4>重建</h4>#}
+        {#        </div>#}
+        {#        <div class="mb-3  row mt-2">#}
+        {#            <label for="rebuild_method" class="col-sm-2 col-form-label">请选择序列重建方法：</label>#}
+        {#            <div class="col-sm-7">#}
+        {#                <select id="rebuild_method" name="rebuild_method" class="form-control" >#}
+        {#                    <option value="bsalign">bsalign</option>#}
+        {#                    <option value="SeqFormer">SeqFormer</option>#}
+        {#                    <option value="BMALA">BMALA</option>#}
+        {#                </select>#}
+        {#            </div>#}
+        {#        </div>#}
+        {#        <div class="mb-3  row mt-2">#}
+        {#            <label for="rebuild_out" class="col-sm-2 col-form-label">请选择序列输出内容：</label>#}
+        {#            <div class="col-sm-7">#}
+        {#                <select id="rebuild_out" name="rebuild_out" class="form-control" >#}
+        {#                    <option value="consensus">只生成consensus</option>#}
+        {#                    <option value="consensus_with_phred">consensus+输出碱基质量预测概率</option>#}
+        {#                </select>#}
+        {#            </div>#}
+        {#        </div>#}
+        {#        <button type="submit" class="btn btn-primary mt-1">开始重建</button>#}
+        {#    </form>#}
+    </div>
+</div>
+<script>
+
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+</script>
+</body>
+</html>

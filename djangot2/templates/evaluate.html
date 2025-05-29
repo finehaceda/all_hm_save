@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA storage simulation platform</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'simulate' %}">Simulate DNA Storage channel</a></li>
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'decode' %}">decode</a></li>
+        <li class="nav-item mx-2"><a style="color:red" class="nav-link" href="{% url 'evaluate' %}">evaluate</a></li>
+    </ul>
+    <div class="row mt-4">
+        <h4>compare result</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    GC content compare
+                </div>
+                <div class="card-body">
+                    <div id="consus1">
+                        <img src="{{ MEDIA_URL }}t4_gc.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    Max homopolymer
+                </div>
+                <div class="card-body">
+                    <div id="consus2">
+                        <img src="{{ MEDIA_URL }}t4_homo.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    Information density compare
+                </div>
+                <div class="card-body">
+                    <div id="consus1">
+                        <img src="{{ MEDIA_URL }}density.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    encode time compare
+                </div>
+                <div class="card-body">
+                    <div id="consus2">
+                        <img src="{{ MEDIA_URL }}encodetime.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    physical density compare
+                </div>
+                <div class="card-body">
+                    <div id="consus1">
+                        <img src="{{ MEDIA_URL }}physical.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    cost compare
+                </div>
+                <div class="card-body">
+                    <div id="consus2">
+                        <img src="{{ MEDIA_URL }}cost.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    Illumina decode time compare
+                </div>
+                <div class="card-body">
+                    <div id="consus2">
+                        <img src="{{ MEDIA_URL }}Illumina_decode_time.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card mt-3">
+                <div class="card-header">
+                    Nanopone decode time compare
+                </div>
+                <div class="card-body">
+                    <div id="consus2">
+                        <img src="{{ MEDIA_URL }}Nanopone_decode_time.png" class="img-fluid" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mt-3">
+{#                <div class="card-header">#}
+{#                    GC content compare#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <div id="consus1">#}
+{#                        <img src="{{ MEDIA_URL }}t4_gc.png" class="img-fluid" alt="">#}
+{#                    </div>#}
+{#                </div>#}
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    // 更新文件选择器的标签
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel").html(fileName);
+    });
+
+    // 更新文件选择器的标签
+    $('#cluster_file').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel1").html(fileName);
+    });
+    // 更新文件选择器的标签
+    $('#file2').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel2").html(fileName);
+    });
+    // 更新文件选择器的标签
+    $('#file3').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel3").html(fileName);
+    });
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+    $(document).ready(function() {
+        $('#reconstruct').change(function() {
+            var reconstruct = $(this).val();
+            {#console.log(reconstruct)#}
+            if (reconstruct === 'yes') {
+                $('#rebuild_method_isshow').show();
+                {#$('#startAndRebuildButton').show();#}
+                {#$('#startButton').hide();#}
+
+                if ($('#rebuild_method').val() === 'SeqFormer'||$('#rebuild_method').val() === 'bsalign'){
+                    $('#baseconfidence_div').show();
+                    $('#copy_num').show();
+                }
+            } else {
+                {#$('#startButton').show();#}
+                {#$('#startAndRebuildButton').hide();#}
+
+                $('#rebuild_method_isshow').hide();
+                $('#baseconfidence_div').hide();
+                $('#copy_num').hide();
+
+            }
+        });
+
+        $('#cluster_method').change(function() {
+            var cluster = $(this).val();
+            if(cluster ==='no'){
+                $('#inputFile').prop('disabled', true);
+                $('#cluster_file').prop('disabled', true);
+                $('#rebuild_method').prop('disabled', true);
+                $('#reconstruct').prop('disabled', true);
+                $('#confidence_yes').prop('disabled', true);
+                $('#confidence_no').prop('disabled', true);
+                $('#index_length_div').hide();
+            }else{
+                $('#inputFile').prop('disabled', false);
+                $('#cluster_file').prop('disabled', false);
+                $('#rebuild_method').prop('disabled', false);
+                $('#reconstruct').prop('disabled', false);
+                $('#confidence_yes').prop('disabled', false);
+                $('#confidence_no').prop('disabled', false);
+                if (cluster === 'index') {
+                    $('#index_length_div').show();
+                } else {
+                    $('#index_length_div').hide();
+                }
+            }
+
+        });
+
+        $('#rebuild_method').change(function() {
+            var method = $(this).val();
+            if (method === 'SeqFormer' || method === 'bsalign') {
+                $('#baseconfidence_div').show();
+                $('#copy_num').show();
+            } else {
+                $('#baseconfidence_div').hide();
+                $('#copy_num').hide();
+            }
+        });
+
+        $('#method').change(function() {
+            var method = $(this).val();
+            if (method === 'fountain' || method === 'PolarCode' ||method === 'YYC') {
+                $('#decision_soft').show();
+            } else {
+                $('#decision_soft').hide();
+            }
+        });
+
+        function init_showfilename(input=$('#filename'),label){
+            //文件名显示
+            var filename = input.val();
+            var fileNameLabel = document.getElementById(label);
+            console.log(filename)
+            // 初始化时显示默认文件名
+            if(filename){
+                fileNameLabel.textContent = filename;
+            }
+        }
+        {#//加载页面初始化#}
+        $(function() {
+            var cluster = $('#cluster_method').val();
+            if (cluster !== 'no'){
+                $('#download_clusterfile').show();
+            }
+            if (cluster === 'index') {
+                $('#index_length_div').show();
+            }
+
+            var rec = $('#reconstruct').val();
+            if (rec === 'yes'){
+                $('#rebuild_method_isshow').show();
+            }
+
+
+
+            init_showfilename($('#filename'),'fileNameLabel')
+            init_showfilename($('#filename1'),'fileNameLabel1')
+            init_showfilename($('#filename2'),'fileNameLabel2')
+            init_showfilename($('#filename3'),'fileNameLabel3')
+            /*
+            //文件名显示
+            var filename = $('#filename').val();
+            var fileNameLabel = document.getElementById('fileNameLabel');
+            console.log(filename)
+            // 初始化时显示默认文件名
+            if(filename){
+                fileNameLabel.textContent = filename;
+            }
+
+            //文件名显示 cluster_file
+            var filename1 = $('#filename1').val();
+            var fileNameLabel1 = document.getElementById('fileNameLabel1');
+            console.log(filename1)
+            // 初始化时显示默认文件名
+            if(filename1){
+                fileNameLabel1.textContent = filename1;
+            }
+
+            //文件名显示 decode file
+            var filename2 = $('#filename2').val();
+            var fileNameLabel2 = document.getElementById('fileNameLabel2');
+            console.log(filename2)
+            // 初始化时显示默认文件名
+            if(filename2){
+                fileNameLabel2.textContent = filename2;
+            }*/
+
+            var method = $('#method').val();
+            {#if (method === 'derrick' || method === 'PolarCode') {#}
+            if (method === 'fountain' || method === 'PolarCode' ||method === 'YYC') {
+                $('#decision_soft').show();
+            } else {
+                $('#decision_soft').hide();
+            }
+        });
+    });
+</script>
+</body>
+</html>

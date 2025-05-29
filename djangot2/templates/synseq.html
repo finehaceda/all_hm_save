@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA storage simulation platform</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item mx-2"><a style="color:red" class="nav-link" href="{% url 'simulate' %}">Simulate DNA Storage channel</a></li>
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'decode' %}">decode</a></li>
+    </ul>
+    {#synthesis, amplification, decay, and sequencing#}
+    <form action="{% url 'synseq' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if errors %}
+            <div class="alert alert-primary" role="alert">
+                {{ errors }}
+            </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <h4>simulate</h4>
+            {#        simulation steps:#}
+
+            <div class="mt-2 mb-1 row">
+                <div class="mt-3 col-sm-2">simulation steps:</div>
+                <div class="mt-3 col-sm-8">
+                    <div class="form-check mx-4 form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="channel" id="synthesis" value="synthesis" disabled checked>
+                        <label class="form-check-label" for="inlineCheckbox1">synthesis</label>
+                    </div>
+                    <input class="form-check-input"  type="checkbox" name="channel" id="synthesis" value="synthesis" hidden checked>
+                    <div class="form-check mx-4 form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="channel" id="PCR" value="PCR" {% if simulate %}disabled="true"{% endif %}
+                               {% if "PCR" in base.channel %}checked{% endif %}>
+                        <label class="form-check-label" for="inlineCheckbox2">PCR</label>
+                    </div>
+                    <div class="form-check mx-4 form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="channel" id="decay" value="decay" {% if simulate %}disabled="true"{% endif %}
+                               {% if "decay" in base.channel %}checked{% endif %}>
+                        <label class="form-check-label" for="inlineCheckbox3">decay</label>
+                    </div>
+                    <div class="form-check mx-4 form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="channel" id="sampling " value="sampling"  {% if simulate %}disabled="true"{% endif %}
+                               {% if "sampling" in base.channel %}checked{% endif %}>
+                        <label class="form-check-label" for="inlineCheckbox3">sampling </label>
+                    </div>
+                    <div class="form-check mx-4 form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="channel" id="sequencing " value="sequencing"  {% if simulate %}disabled="true"{% endif %}
+                               {% if "sequencing" in base.channel %}checked{% endif %}>
+                        <label class="form-check-label" for="inlineCheckbox3">sequencing </label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" id="stepsok" name="stepsok" class="btn ml-1 btn-primary mt-3" {% if simulate %}disabled="true"{% endif %}>OK</button>
+        </div>
+
+        {% if simulate %}
+            {#            <div class="mb-3">#}
+            {#                <label for="file" class="form-label">upload file：</label>#}
+            {#                <input class="form-control" type="file" id="file">#}
+            {#            </div>#}
+            <div class="mt-2 mb-1 row">
+                <label for="file" class="col-sm-2 col-form-label">upload file：</label>
+                <div class="custom-file col-sm-8">
+                    <input type="file" class="custom-file-input" id="inputFile" name="file" {% if sequencing_data %}disabled="true"{% endif %}>
+                    <label class="custom-file-label" for="inputFile">choose file</label>
+                </div>
+            </div>
+            {% if "synthesis" in base.channel %}
+                <div class="mt-3">
+                    <h5>synthesis</h5>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+                            <label for="syncycles" class="col-sm-2 col-form-label">per oligo scale:</label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="syncycles" value="{{ base.syncycles }}" name="syncycles"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="synyield" class="col-sm-2 col-form-label">Synthesis yield :</label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="synyield" value="{{ base.synyield }}" name="synyield"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if "PCR" in base.channel %}
+                <div class="mt-2">
+                    <h5>PCR</h5>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+                            <label for="pcrcycle" class="col-sm-2 col-form-label">PCR cycles :</label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="pcrcycle" value="{{ base.pcrcycle }}" name="pcrcycle"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="pcrpro" class="col-sm-2 col-form-label">PCR probability : </label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="seq_length" value="{{ base.pcrpro }}" name="pcrpro"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if "decay" in base.channel %}
+                <div class="mt-2">
+                    <h5>decay</h5>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+                            <label for="decay_year" class="col-sm-2 col-form-label">Years of storage : </label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="decay_year" value="{{ base.decay_year }}" name="decay_year"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="decaylossrate" class="col-sm-2 col-form-label">Decay ratio:  </label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="decaylossrate" value="{{ base.decaylossrate }}" name="decaylossrate"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+                            <label for="temperature" class="col-sm-2 col-form-label">Temperature: </label>
+                            <div class="col-sm-3">
+{#                                <input type="number" class="form-control" id="decay_year" value="{{ base.decay_year }}" name="decay_year"#}
+{#                                {% if sequencing_data %}disabled="true"{% endif %} >#}
+                                <input type="number" class="form-control" id="temperature" value="20" name="temperature"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="humidity" class="col-sm-2 col-form-label">Humidity:  </label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="humidity" value="0.5" name="humidity"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if "sampling" in base.channel %}
+                <div class="mt-2">
+                    <h5>sampling</h5>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+{#                            <label for="decaylossrate" class="col-sm-2 col-form-label">Sequencing method :</label>#}
+{#                            <div class="col-sm-3">#}
+{#                                <select id="synthesis-method" name="syn_method" class="form-control"#}
+{#                                {% if sequencing_data %}disabled="true"{% endif %} >#}
+{#                                    <option selected value="illuminas">illumina(single)</option>#}
+{#                                    <option value="illuminap">illumina(paired)</option>#}
+{#                                    <option value="Nanopone1D">Nanopone(1D)</option>#}
+{#                                    <option value="Nanopone2D">Nanopone(2D)</option>#}
+{#                                </select>#}
+{#                            </div>#}
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="depth" class="col-sm-2 col-form-label">Sampling ratio :</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="sample_ratio" value="{{ base.sample_ratio }}" name="sample_ratio"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if "sequencing" in base.channel %}
+                <div class="mt-2">
+                    <h5>sequencing</h5>
+                    <div class="ml-3">
+                        <div class="mt-2 mb-1 row">
+                            <label for="decaylossrate" class="col-sm-2 col-form-label">Sequencing method :</label>
+                            <div class="col-sm-3">
+                                <select id="synthesis-method" name="syn_method" class="form-control"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                                    <option selected value="illuminas">illumina(single)</option>
+                                    <option value="illuminap">illumina(paired)</option>
+                                    <option value="Nanopone1D">Nanopone(1D)</option>
+                                    <option value="Nanopone2D">Nanopone(2D)</option>
+                                </select>
+                            </div>
+                            {#                        <div class="col-sm-1"></div>#}
+                            <label for="depth" class="col-sm-2 col-form-label">Sequencing depth :</label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control" id="depth" value="{{ base.depth }}" name="depth"
+                                {% if sequencing_data %}disabled="true"{% endif %} >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <button type="submit" id="synseqBtn" name="synseqBtn" class="btn btn-primary mt-3"
+                                {% if sequencing_data %}disabled="true"{% endif %} >start simulate</button>
+
+            <div class="row mt-4">
+                <h4>result</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-10">
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            {% if sequencing_data %}
+                                <input hidden value="{{ sequencing_data }}" name="sequencing_data"/>
+                                <div id="encode-info1">
+                                    <h5 class="card-title">simulate result:</h5>
+                                    <p class="card-text">
+                                    <div>sequencing cost time：{{ sequencing_data.time }}</div>
+                                    <div>sequencing file size：{{ sequencing_data.size }}</div>
+                                    </p>
+                                    <a href="{% url 'download_file' mode='synseq' %}" class="download-link">download</a>
+                                    {#                                    <button type="button" class="btn btn-success mt-3">#}
+                                    {#                                        点击下载#}
+                                    {#                                    </button>#}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+{#            <div class="mt-4 form-group text-right">#}
+{#                <button id="reset" class="btn btn-secondary" type="reset" name="reset">重置</button>#}
+{#                <button type="submit" id="next" name="next" class="btn btn-success">下一步></button>#}
+{#            </div>#}
+        {% endif %}
+
+
+    </form>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.x.x/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $(".custom-file-label").html(fileName);
+    });
+
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+</script>
+</body>
+</html>

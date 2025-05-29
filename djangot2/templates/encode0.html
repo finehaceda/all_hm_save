@@ -1,0 +1,177 @@
+{#{% extends 'base.html' %}#}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA存储模拟编解码平台</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA存储模拟编解码平台</h1>
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a style="color:red" class="nav-link" href="{% url 'encode' %}">编码</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'synseq' %}">合成及测序</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">聚类及重建</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'decode' %}">解码</a></li>
+    </ul>
+    <form action="{% url 'cluster' %}" method="post">
+        {% csrf_token %}
+        <div class="row mt-4">
+            <h4>编码</h4>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="inputFile">请输入要编码的文件：</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="inputFile" name="file">
+                            <label class="custom-file-label" for="inputFile">选择文件</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="encodingMethod1">编码方法一：</label>
+                        <select class="form-control" id="encodingMethod1" name="method1">
+                            <option value="fountain" {% if base.method1 == "fountain" %}selected{% endif %}>喷泉码</option>
+                            <option value="yyc" {% if base.method1 == "yyc" %}selected{% endif %}>YYC</option>
+                            <option value="derrick" {% if base.method1 == "derrick" %}selected{% endif %}>derrick</option>
+                            <option value="polar" {% if base.method1 == "polar" %}selected{% endif %}>极化码</option>
+                            <option value="hedges" {% if base.method1 == "hedges" %}selected{% endif %}>hedges</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="encodingMethod2">编码方法二：</label>
+                        <select class="form-control" id="encodingMethod2" name="method2">
+                            <option value="fountain" {% if base.method2 == "fountain" %}selected{% endif %}>喷泉码</option>
+                            <option value="yyc" {% if base.method2 == "yyc" %}selected{% endif %}>YYC</option>
+                            <option value="derrick" {% if base.method2 == "derrick" %}selected{% endif %}>derrick</option>
+                            <option value="polar" {% if base.method2 == "polar" %}selected{% endif %}>极化码</option>
+                            <option value="hedges" {% if base.method2 == "hedges" %}selected{% endif %}>hedges</option>
+
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="sequenceLength1">序列长度：</label>
+                            <input type="number" class="form-control" id="sequenceLength1" value="120" name="seqlen">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="gcContent">GC含量：</label>
+                            <div class="input-group">
+                                <input type="number" name="gc1" class="form-control" id="mingc" value="40"
+                                       aria-label="Minimum GC" aria-describedby="gcHelp">
+                                <div class="input-group-append">
+                                    <span class="input-group-text" id="gcHelp">%</span>
+                                </div>
+                                ~
+                                <input type="number" name="gc2" class="form-control" id="maxgc" value="60"
+                                       aria-label="Maximum GC" style="margin-left: -1px;">
+                                <div class="input-group-append">
+                                    <span class="input-group-text" id="gcHelp2">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">编码</button>
+                </form>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <h4>结果</h4>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        编码结果
+                    </div>
+                    <div class="card-body">
+                        {% if user_input %}
+                                                <h5 class="card-title">方法一：喷泉码</h5>
+                            <h5 class="card-title">方法一：{{ user_input.method1 }}</h5>
+                            <p class="card-text">
+                            <div>Encode method：{{ user_input.method1 }}</div>
+                            <div>Single DNA length：{{ encoded_data1.seqlen }}nt</div>
+                            <div>Index length：{{ encoded_data1.index_length }}nt</div>
+                            <div>Encoding time：{{ encoded_data1.encode_time }}s</div>
+                            <div>DNA sequence number：{{ encoded_data1.sequence_number }}</div>
+                            <div>Information density：{{ encoded_data1.info_density }} bits/nt</div>
+                            </p>
+                            <button type="button" class="btn btn-success mt-3" onclick="window.location.href='/download1/'">
+                                点击下载
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        编码结果
+                    </div>
+                    <div class="card-body">
+                        {% if user_input %}
+                                                <h5 class="card-title">方法二：YYC</h5>
+                            <h5 class="card-title">方法二：{{ user_input.method2 }}</h5>
+                            <p class="card-text">
+                            <div>Encode method：{{ user_input.method2 }}</div>
+                            <div>Single DNA length：{{ encoded_data2.seqlen }}nt</div>
+                            <div>Index length：{{ encoded_data2.index_length }}nt</div>
+                            <div>Encoding time：{{ encoded_data2.encode_time }}s</div>
+                            <div>DNA sequence number：{{ encoded_data2.sequence_number }}</div>
+                            <div>Information density：{{ encoded_data2.info_density }} bits/nt</div>
+                            </p>
+                            <button type="button" class="btn btn-success mt-3" onclick="window.location.href='/download2/'">
+                                点击下载
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 form-group text-right">
+            <button type="reset" id="reset_button" class="btn btn-secondary">重置</button>
+{#            <button class="btn btn-success" onclick="location.href='{% url 'index' %}'">下一步></button>#}
+{#            <button class="btn btn-success" type="submit">下一步></button>#}
+        </div>
+            <button class="btn btn-success" type="submit">下一步></button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    // 更新文件选择器的标签
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $(".custom-file-label").html(fileName);
+    });
+
+    // 当重置按钮被点击时
+    $('button[type="reset"]').on('click', function () {
+        // 清空文件选择器
+        $('#inputFile').val('');
+        $('.custom-file-label').text('选择文件'); // 更新文件选择器的标签
+
+        // 重置下拉列表
+        $('#encodingMethod1').val("{{ base.method1 }}"); // 假设默认值是'fountain'
+        $('#encodingMethod2').val("{{ base.method2 }}"); // 假设第二个下拉列表的默认值也是'fountain'
+
+        // 清空其他输入字段
+        $('#sequenceLength1').val('120');
+        $('#mingc').val('40');
+        $('#maxgc').val('60');
+        $('#maxgc').val('60');
+
+        // 你可以在这里添加更多重置逻辑，比如清空结果显示部分等
+        // 例如：$('#result-section').html(''); // 假设你有一个id为'result-section'的元素来显示结果
+    });
+
+
+</script>
+</body>
+</html>

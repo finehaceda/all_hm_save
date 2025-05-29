@@ -1,0 +1,372 @@
+{#{% extends 'base.html' %}#}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA storage simulation platform</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">DNA storage simulation platform</h1>
+    {#    <ul class="nav nav-pills">#}
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item mx-2"><a style="color:red" class="nav-link" href="{% url 'encode' %}">encode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'simulate' %}">Simulate DNA Storage channel</a></li>
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'cluster' %}">cluster</a></li>#}
+        {#        <li class="nav-item"><a class="nav-link" href="{% url 'reconstruct' %}">reconstruct</a></li>#}
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'decode' %}">decode</a></li>
+        <li class="nav-item mx-2"><a class="nav-link" href="{% url 'evaluate' %}">evaluate</a></li>
+    </ul>
+    {#    <form action="{% url 'cluster' %}" method="post">#}
+    <form action="{% url 'encode' %}" method="post" enctype="multipart/form-data">
+        {% if errors %}
+            <div class="alert alert-primary" role="alert">
+                {{ errors }}
+            </div>
+        {% endif %}
+        {% csrf_token %}
+        <div class="row mt-4">
+            <h4>encode</h4>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <input type="text" class="form-control" id="filename" value="{{ filename }}" hidden name="filename">
+
+                {#                <input name="filename" value="{{ filename }}" hidden />#}
+                <div class="mt-2 mb-1 row">
+                    <label for="file" class="col-sm-2 col-form-label">upload file：</label>
+                    <div class="custom-file col-sm-8">
+                        <input type="file" class="custom-file-input" id="inputFile" name="file" {% if encoded_data %} disabled="true"{% endif %}>
+                        <label class="custom-file-label" for="inputFile" id="fileNameLabel">choose file</label>
+                    </div>
+                </div>
+                {# {% 编码方法 %}#}
+                <div class="mt-2 mb-2">
+
+                    <div class="mt-2 mb-1 row">
+                        <label for="method" class="col-sm-2 col-form-label">encode methods：</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="method" name="method" {% if encoded_data %}disabled="true"{% endif %}>
+                                <option value="fountain" {% if base.method == "fountain" %}selected{% endif %}>DNA Fountain</option>
+                                <option value="YYC" {% if base.method == "YYC" %}selected{% endif %}>YYC</option>
+                                <option value="derrick" {% if base.method == "derrick" %}selected{% endif %}>Derrick</option>
+                                <option value="PolarCode" {% if base.method == "PolarCode" %}selected{% endif %}>DNA PolarCode</option>
+                                <option value="hedges" {% if base.method == "hedges" %}selected{% endif %}>Hedges</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {# {% 编序列长度 homopolymer%}#}
+
+                <div class="mt-2 row">
+                    <label for="sequence_length" class="col-sm-2 col-form-label">Segment length:</label>
+                    <div class="col-sm-3">
+                        <input {% if encoded_data %}disabled="true"{% endif %} type="number" class="form-control" id="seq_length" value="{{ base.seq_length }}" name="seq_length">
+                    </div>
+                    <div class="col-sm-1"></div>
+                    <label for="homopolymer" class="col-sm-2 col-form-label">max homopolymer：</label>
+                    <div class="col-sm-3">
+                        <input {% if encoded_data %}disabled="true"{% endif %} type="number" class="form-control" id="homopolymer" value="{{ base.homopolymer }}" name="homopolymer">
+                    </div>
+                </div>
+                {#                <div class="form-group">common parameter：#}
+                {#  gc_rs  #}
+                <div class="mt-2 mb-1 row" id="gc_rs" style="display: none;">
+
+                    <label for="gc" class="col-sm-2 col-form-label">GC bias：</label>
+                    <div class="col-sm-3">
+                        <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="gc" value="{{ base.gc }}" name="gc">
+                    </div><div class="col-sm-1"></div>
+
+                    <div id="rsshow" class="col-sm-6 row">
+                        <label for="rs_num" class="col-sm-4 col-form-label">rs nums(bytes)：</label>
+                        <div class="col-sm-6 ml-2">
+                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="rs_num" value="{{ base.rs_num }}" name="rs_num">
+                        </div>
+                    </div>
+                </div>
+
+                {#            喷泉码时单独的参数#}
+                <div id="redundancy_cop" style="display: none;">
+                    <div class="mt-2 mb-1 row">
+                        <label for="delta" class="col-sm-2 col-form-label">delta：</label>
+                        <div class="col-sm-3">
+                            <input type="text" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="delta" value="{{ base.delta }}" name="delta">
+                        </div>
+                        {#                        <label for="rs_num2" class="col-sm-2 col-form-label">rs nums(bytes)：</label>#}
+                        {#                        <div class="col-sm-3">#}
+                        {#                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="rs_num2" value="{{ base.rs_num }}" name="rs_num2">#}
+                        {#                        </div>#}
+                        <div class="col-sm-1"></div>
+                        <label for="redundancy_rate" class="col-sm-2 col-form-label">redundancy：</label>
+                        <div class="col-sm-3">
+                            <input type="text" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="redundancy_rate" value="{{ base.redundancy_rate }}" name="redundancy_rate">
+                        </div>
+                    </div>
+
+                    <div class="mt-2 mb-1 row">
+                        <label for="c_dist" class="col-sm-2 col-form-label">c_dist：</label>
+                        <div class="col-sm-3">
+                            <input type="text" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="c_dist" value="{{ base.c_dist }}" name="c_dist">
+                        </div><div class="col-sm-1"></div>
+
+                        <label for="crc" class="col-sm-2 col-form-label">crc nums(bytes):</label>
+
+                        <div class="col-sm-3">
+                            <select class="form-control" id="crc" name="crc" {% if encoded_data %}disabled="true"{% endif %}>
+                                <option value=0 {% if base.crc == 0 %}selected{% endif %}>0</option>
+                                <option value=2 {% if base.crc == 2 %}selected{% endif %}>2</option>
+                            </select>
+                        </div>
+{#                        <div class="col-sm-3">#}
+{#                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="crc" value="{{ base.crc }}" name="crc">#}
+{#                        </div>#}
+                        {#                        <label for="delta" class="col-sm-2 col-form-label">delta：</label>#}
+                        {#                        <div class="col-sm-3">#}
+                        {#                            <input type="text" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="delta" value="{{ base.delta }}" name="delta">#}
+                        {#                        </div>#}
+                    </div>
+
+                </div>
+
+                {#            YYC单独的参数#}
+                <div id="yyc_cop" style="display: none;">
+                    <div class="mt-2 mb-1 row">
+                        <label for="max_iterations" class="col-sm-2 col-form-label">max iterations：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %} disabled="true"{% endif %} class="form-control" id="max_iterations"
+                                   value="{{ base.max_iterations }}" name="max_iterations">
+                        </div><div class="col-sm-1"></div>
+
+                        <label for="crcyyc" class="col-sm-2 col-form-label">crc nums(bytes):</label>
+                        <div class="col-sm-3">
+                            <select class="form-control" id="crcyyc" name="crcyyc" {% if encoded_data %}disabled="true"{% endif %}>
+                                <option value=0 {% if base.crc == 0 %}selected{% endif %}>0</option>
+                                <option value=2 {% if base.crc == 2 %}selected{% endif %}>2</option>
+                            </select>
+                        </div>
+                        {#                        <label for="redundancy_rate" class="col-sm-2 col-form-label">redundancy：</label>#}
+                        {#                        <div class="col-sm-3">#}
+                        {#                            <input type="text" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="redundancy_rate" value="{{ base.redundancy_rate }}" name="redundancy_rate">#}
+                        {#                        </div>#}
+                    </div>
+
+
+                </div>
+
+                {#            derrick单独的参数#}
+                <div id="derrick_cop" style="display: none;">
+                    <div class="mt-2 mb-1 row">
+                        <label for="matrix_n" class="col-sm-2 col-form-label">matrix_n：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %} disabled="true"{% endif %} class="form-control" id="matrix_n"
+                                   value="{{ base.matrix_n }}" name="matrix_n">
+                        </div><div class="col-sm-1"></div>
+                        <label for="matrix_r" class="col-sm-2 col-form-label">matrix_r(rs_rows)：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="matrix_r"
+                                   value="{{ base.matrix_r }}" name="matrix_r">
+                        </div>
+                    </div>
+                </div>
+
+                {#            polar单独的参数#}
+                <div id="polar_cop" style="display: none;">
+                    <div class="mt-2 mb-1 row">
+                        <label for="frozen_bits_len" class="col-sm-2 col-form-label">frozen bits length：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %} disabled="true"{% endif %} class="form-control" id="frozen_bits_len"
+                                   value="{{ base.frozen_bits_len }}" name="frozen_bits_len">
+                        </div><div class="col-sm-1"></div>
+                        {#                        <label for="matrix_r" class="col-sm-2 col-form-label">matrix_r(rs_rows)：</label>#}
+                        {#                        <div class="col-sm-3">#}
+                        {#                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="matrix_r"#}
+                        {#                                   value="{{ base.matrix_r }}" name="matrix_r">#}
+                        {#                        </div>#}
+                    </div>
+                </div>
+
+                {#            hedges单独的参数#}
+                <div id="hedges_cop" style="display: none;">
+                    <div class="mt-2 mb-1 row">
+                        <label for="matrix_n_h" class="col-sm-2 col-form-label">matrix_n：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %} disabled="true"{% endif %} class="form-control" id="matrix_n_h"
+                                   value="{{ base.matrix_n_h }}" name="matrix_n_h">
+                        </div><div class="col-sm-1"></div>
+                        <label for="matrix_r_h" class="col-sm-2 col-form-label">matrix_r(rs_rows)：</label>
+                        <div class="col-sm-3">
+                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="matrix_r_h"
+                                   value="{{ base.matrix_r_h }}" name="matrix_r_h">
+                        </div>
+                    </div>
+                    <div class="mt-2 mb-1 row">
+                        <label for="coderatecode" class="col-sm-2 col-form-label">coderatecode：</label>
+                        <div class="col-sm-3">
+                            <select id="coderatecode" name="coderatecode" class="form-control"
+                                    {% if encoded_data %}disabled="true"{% endif %} >
+                                <option {% if base.coderatecode == '1' %}selected{% endif %}  value="1">0.75</option>
+                                <option {% if base.coderatecode == '2' %}selected{% endif %}  value="2">0.6</option>
+                                <option {% if base.coderatecode == '3' %}selected{% endif %}  value="3">0.5</option>
+                                <option {% if base.coderatecode == '4' %}selected{% endif %}  value="4">1. / 3.</option>
+                                <option {% if base.coderatecode == '5' %}selected{% endif %}  value="5">0.25</option>
+                                <option {% if base.coderatecode == '6' %}selected{% endif %}  value="6"> 1. / 6.</option>
+                            </select>
+                        </div><div class="col-sm-1"></div>
+                        {#                        <label for="matrix_r_h" class="col-sm-2 col-form-label">matrix_r(rs_rows)：</label>#}
+                        {#                        <div class="col-sm-3">#}
+                        {#                            <input type="number" {% if encoded_data %}disabled="true"{% endif %} class="form-control" id="matrix_r_h"#}
+                        {#                                   value="{{ base.matrix_r_h }}" name="matrix_r_h">#}
+                        {#                        </div>#}
+                    </div>
+                </div>
+
+                <button type="submit" {% if encoded_data %} disabled="true"{% endif %}  id="encodeBtn" name="encodeBtn" class="btn btn-primary mt-2">start encode...</button>
+            </div>
+        </div>
+        <div class="row mt-4"><h4>result:</h4></div>
+        {#        {{ form.as_p }}#}
+        {# 编码结果#}
+        <div class="row mt-2 mb-5">
+            <div class="col-md-10">
+                <div class="card mt-3">
+                    {#                    <div class="card-header">#}
+                    {#                        figure comparation#}
+                    {#                    </div>#}
+                    <div class="card-body">
+                        {% if encoded_data %}
+                            <div id="encode-info1">
+                                <h5 class="card-title">Encode method：{{ base.method }}</h5>
+                                <p class="card-text">
+                                <div>total bit：{{ encoded_data.total_bit }}</div>
+                                <div>total base：{{ encoded_data.total_base }}</div>
+                                <div>encode time：{{ encoded_data.encode_time }}</div>
+                                <div>DNA sequence number：{{ encoded_data.seq_num }}</div>
+                                <div>Information density：{{ encoded_data.density }} bits/nt</div>
+{#                                <div>GC：{{ encoded_data.gc }}</div>#}
+                                <div>max_homopolymer：{{ encoded_data.max_homopolymer }}</div>
+                                </p>
+                                <a href="{% url 'download_file' mode='encode' %}" class="download-link">download</a>
+
+                                {#                                <button type="button" class="btn btn-success mt-3">#}
+                                {#                                    点击下载#}
+                                {#                                    <a href="{% url 'download_file' mode='encode'  %}">点击下载</a>#}
+                                {#                                </button>#}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+{#        <div class="mt-4 form-group text-right">#}
+{#            <button type="reset" id="reset_button" class="btn btn-secondary">重置</button>#}
+{#            <button type="submit" id="next" name="next" class="btn btn-success">下一步></button>#}
+{#        </div>#}
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.x.x/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 更新文件选择器的标签
+    $('#inputFile').on('change', function (e) {
+        var fileName = e.target.files[0].name;
+        $("#fileNameLabel").html(fileName);
+    });
+
+
+    const STORAGE_KEY = 'scrollPosition';
+
+    // 保存滚动位置到 sessionStorage
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        sessionStorage.setItem(STORAGE_KEY, scrollPosition);
+    });
+
+    // 页面加载时读取 sessionStorage 并滚动到保存的位置
+    window.addEventListener('load', function() {
+        const scrollPosition = sessionStorage.getItem(STORAGE_KEY);
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+        }
+    });
+
+    $(document).ready(function() {
+        $('#method').change(function() {
+            var selectedOption = $(this).val();
+            if  (selectedOption === 'fountain'|| selectedOption === 'YYC'){
+                $('#gc_rs').show();
+            }else{
+                $('#gc_rs').hide();
+            }
+
+            if (selectedOption === 'PolarCode') {
+                $('#polar_cop').show();
+                $('#seq_length').val(260).prop('disabled', true);
+                $('#homopolymer').prop('disabled', true);
+                $('#redundancy_cop,#yyc_cop,#derrick_cop,#hedges_cop').hide();
+            }else{
+                $('#seq_length').prop('disabled', false).val('{{ base.seq_length }}');
+                $('#homopolymer').prop('disabled', false);
+                if (selectedOption === 'fountain') {
+                    $('#redundancy_cop').show();
+                    $('#yyc_cop,#derrick_cop,#hedges_cop,#polar_cop').hide();
+                }else if (selectedOption === 'YYC') {
+                    $('#yyc_cop').show();
+                    $('#redundancy_cop,#derrick_cop,#hedges_cop,#polar_cop').hide();
+                }else if (selectedOption === 'derrick') {
+                    $('#derrick_cop').show();
+                    $('#redundancy_cop,#yyc_cop,#polar_cop,#hedges_cop').hide();
+                }else{
+                    $('#hedges_cop').show();
+                    $('#derrick_cop,#yyc_cop,#redundancy_cop,#polar_cop').hide();
+                }
+            }
+        });
+
+
+        // Initially hide the conditional field based on the default value
+        $(function() {
+            var initialOption = $('#method').val();
+            console.log(initialOption)
+            $('#seq_length, #homopolymer').show();
+            $('#gc_rs, #redundancy_cop, #yyc_cop, #derrick_cop, #hedges_cop, #polar_cop').hide();
+
+            if (initialOption === 'fountain') {
+                $('#redundancy_cop,#gc_rs').show();
+            }else if (initialOption === 'PolarCode'){
+                {#$('#seq_length').val(260);#}
+                $('#seq_length').prop('disabled', true).val(260);
+                $('#homopolymer').prop('disabled', true).val(4);
+                $('#polar_cop').show();
+            }else if  (initialOption === 'hedges'){
+                $('#hedges_cop').show();
+            }else if (initialOption === 'YYC') {
+                $('#yyc_cop,#gc_rs').show();
+            }else if (initialOption === 'derrick') {
+                $('#derrick_cop').show();
+            }else{
+                $('#hedges_cop').show();
+            }
+            {#init_showfilename($('#filename'),'fileNameLabel')#}
+
+            var filename = $('#filename').val();
+            var fileNameLabel = document.getElementById('fileNameLabel');
+            console.log('111:'+filename)
+            // 初始化时显示默认文件名
+            if(filename){
+                fileNameLabel.textContent = filename;
+            }
+
+        });
+    });
+
+
+</script>
+</body>
+</html>
