@@ -1,0 +1,33 @@
+copy_num = 5
+choose_seqsnums = 100 ; select_nums = 100
+100 100
+0
+trans_seq_hottest max_num:190
+0
+testdata done!
+-----------------------------------bsalign5--------------------------------
+
+错误数量超过10的序列数量:0
+mismatch数量:0 del数量:1 insert数量:12 
+发生错误的序列数量:3 发生错误数量占所有数量： 0.03
+发生错误的碱基数量 :5
+每条序列碱基数量：150
+平均编辑距离:0.05
+when dis >= 1 平均编辑距离:1.6666666666666667
+recovery rate:0.9996666666666667
+[('bsalign5', 0.9996666666666667, 0.0003333333333333334, 0.03, 0.97, '0:1:12', '5', '3')]
+第 0 次实验开始！！
+lr = 0.00100000
+n_layers = 2
+找到模型/home2/hm/models/illumina_model_old/id20_seqcluster_fix/model_encinput_decinput_copy5_epoch20_std_loss_.pth
+-----------------------------------deep learning5--------------------------------
+模型参数已成功加载！/home2/hm/models/illumina_model_old/id20_seqcluster_fix/model_encinput_decinput_copy5_epoch20_std_loss_.pth
+mismatch数量:2 del数量:7 insert数量:0 
+发生错误的序列数量:2 发生错误数量占所有数据： 0.02
+发生错误的碱基数量 :2
+每条序列碱基数量：150
+平均编辑距离:0.02
+when dis > 1 平均编辑距离:1.0
+recovery rate:0.9998666666666667
+oritest_seqs_num: 100 copynum:5
+done
